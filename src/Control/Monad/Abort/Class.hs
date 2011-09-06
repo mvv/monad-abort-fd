@@ -2,6 +2,7 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -11,7 +12,9 @@ module Control.Monad.Abort.Class (
     MonadRecover(..)
   ) where
 
+import Prelude hiding (catch)
 import Data.Monoid
+import Control.Exception (SomeException, throwIO, catch)
 import Control.Monad.Cont
 import Control.Monad.Error
 import Control.Monad.List
@@ -39,6 +42,12 @@ instance Monad μ ⇒ MonadAbort e (AbortT e μ) where
 
 instance Monad μ ⇒ MonadRecover e (AbortT e μ) where
   recover = A.recover
+
+instance MonadAbort SomeException IO where
+  abort = throwIO
+
+instance MonadRecover SomeException IO where
+  recover = catch
 
 instance Monad μ ⇒ MonadError e (AbortT e μ) where
   throwError = A.abort
