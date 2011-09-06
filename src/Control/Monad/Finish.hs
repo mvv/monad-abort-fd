@@ -1,13 +1,14 @@
 {-# LANGUAGE UnicodeSyntax #-}
 
-module Control.Monad.Abort (
-    MonadAbort(..),
-    MonadRecover(..),
+module Control.Monad.Finish (
+    MonadFinish(..),
 
-    Abort,
-    runAbort,
+    Finish,
+    runFinish,
+    runFinish',
 
-    AbortT(..),
+    FinishT(..),
+    runFinishT',
 
     module Control.Monad,
     module Control.Monad.Fix,
@@ -18,6 +19,6 @@ import Control.Monad
 import Control.Monad.Fix
 import Control.Monad.Instances ()
 import Control.Monad.Trans
-import Control.Monad.Trans.Abort hiding (abort, recover)
-import Control.Monad.Abort.Class
+import Control.Monad.Trans.Finish hiding (finish)
+import Control.Monad.Finish.Class
 

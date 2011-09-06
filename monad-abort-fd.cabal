@@ -26,11 +26,13 @@ Source-Repository head
 Library
   Build-Depends:
     base               >= 4 && < 5,
-    transformers-abort >= 0.1,
+    transformers-abort >= 0.2,
     mtl                >= 2.0
   Hs-Source-Dirs: src
   GHC-Options: -Wall
   Exposed-Modules:
     Control.Monad.Abort.Class
     Control.Monad.Abort
+    Control.Monad.Finish.Class
+    Control.Monad.Finish
 
