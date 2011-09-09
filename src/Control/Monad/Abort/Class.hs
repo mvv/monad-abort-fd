@@ -11,7 +11,8 @@ module Control.Monad.Abort.Class (
     MonadAbort(..),
     MonadRecover(..),
     onError,
-    onError_
+    onError_,
+    ignore
   ) where
 
 import Prelude hiding (catch)
@@ -44,6 +45,9 @@ onError m h = recover m (\e → h e >> abort e)
 
 onError_ ∷ MonadRecover e μ ⇒ μ α → μ β → μ α
 onError_ m = onError m . const
+
+ignore ∷ MonadRecover e μ ⇒ μ α → μ ()
+ignore m = recover (m >> return ()) (const $ return ())
 
 instance Monad μ ⇒ MonadAbort e (AbortT e μ) where
   abort = A.abort

@@ -36,16 +36,20 @@ module Control.Monad.Exception (
     bracket_,
     bracketOnEscape,
     bracketOnError,
+    module Control.Monad.Abort.Class,
     module Control.Exception
   ) where
 
 import Prelude hiding (catch)
 import Data.Monoid
 import Data.Default
+import Data.Traversable
 import Data.Functor.Identity
 import Control.Applicative
 import Control.Monad.Base
-import Control.Monad.Abort
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.Control
+import Control.Monad.Trans.Abort hiding (abort, recover)
 import Control.Monad.Trans.Finish
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.List
@@ -57,7 +61,7 @@ import qualified Control.Monad.Trans.Writer.Lazy as L
 import qualified Control.Monad.Trans.Writer.Strict as S
 import qualified Control.Monad.Trans.RWS.Lazy as L
 import qualified Control.Monad.Trans.RWS.Strict as S
-import Control.Monad.Trans.Control
+import Control.Monad.Abort.Class
 import Control.Exception hiding (
   evaluate, throw, throwIO, catch, catchJust, handle, handleJust,
   Handler(..), catches, try, tryJust, finally, onException,
