@@ -14,6 +14,7 @@ module Control.Monad.Exception (
     exception,
     evaluate,
     throw,
+    throwIO,
     catch,
     catchJust,
     handle,
@@ -75,6 +76,9 @@ evaluate = liftBase . E.evaluate
 
 throw ∷ (MonadAbort SomeException μ, Exception e) ⇒ e → μ α
 throw = abort . toException
+
+throwIO ∷ (MonadBase μ IO, Exception e) ⇒ e → μ α
+throwIO = liftBase . E.throwIO
 
 catch ∷ (MonadRecover SomeException μ, Exception e) ⇒ μ α → (e → μ α) → μ α
 catch m h = recover m $ \e → maybe (throw e) h (fromException e)
