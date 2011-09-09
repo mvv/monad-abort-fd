@@ -3,6 +3,8 @@
 module Control.Monad.Abort (
     MonadAbort(..),
     MonadRecover(..),
+    onError,
+    onError_,
 
     Abort,
     runAbort,
