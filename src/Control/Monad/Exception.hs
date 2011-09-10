@@ -27,6 +27,7 @@ module Control.Monad.Exception (
     onExceptions,
     MonadFinally(..),
     onEscape,
+    tryAll,
     MonadMask(..),
     mask,
     mask_,
@@ -231,6 +232,10 @@ instance (MonadFinally μ, Monoid w) ⇒ MonadFinally (S.RWST r w s μ) where
 
 onEscape ∷ MonadFinally μ ⇒ μ α → μ β → μ α
 onEscape m f = fmap fst $ finally' m $ maybe (() <$ f) (const $ return ())
+
+tryAll ∷ MonadFinally μ ⇒ [μ α] → μ ()
+tryAll []       = return ()
+tryAll (m : ms) = finally (() <$ m) $ tryAll ms
 
 deriving instance Ord MaskingState
 deriving instance Enum MaskingState
