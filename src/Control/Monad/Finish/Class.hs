@@ -11,6 +11,8 @@ module Control.Monad.Finish.Class (
   ) where
 
 import Data.Monoid
+import Control.Monad.Trans.Identity
+import Control.Monad.Trans.Maybe
 import Control.Monad.Cont
 import Control.Monad.Error
 import Control.Monad.List
@@ -66,7 +68,13 @@ instance MonadWriter w μ ⇒ MonadWriter w (FinishT f μ) where
 
 instance MonadRWS r w s μ ⇒ MonadRWS r w s (FinishT f μ)
 
+instance MonadFinish f μ ⇒ MonadFinish f (IdentityT μ) where
+  finish = lift . finish
+
 instance MonadFinish f μ ⇒ MonadFinish f (ContT r μ) where
+  finish = lift . finish
+
+instance MonadFinish f μ ⇒ MonadFinish f (MaybeT μ) where
   finish = lift . finish
 
 instance (MonadFinish f μ, Error e) ⇒ MonadFinish f (ErrorT e μ) where

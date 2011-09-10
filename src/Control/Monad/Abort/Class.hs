@@ -18,6 +18,8 @@ module Control.Monad.Abort.Class (
 import Prelude hiding (catch)
 import Data.Monoid
 import Control.Exception (SomeException, throwIO, catch)
+import Control.Monad.Trans.Identity
+import Control.Monad.Trans.Maybe
 import Control.Monad.Cont
 import Control.Monad.Error
 import Control.Monad.List
@@ -87,8 +89,20 @@ instance MonadWriter w μ ⇒ MonadWriter w (AbortT e μ) where
 
 instance MonadRWS r w s μ ⇒ MonadRWS r w s (AbortT e μ)
 
+instance MonadAbort e μ ⇒ MonadAbort e (IdentityT μ) where
+  abort = lift . abort
+
+instance MonadRecover e μ ⇒ MonadRecover e (IdentityT μ) where
+  recover m h = IdentityT $ runIdentityT m `recover` (runIdentityT . h)
+
 instance MonadAbort e μ ⇒ MonadAbort e (ContT r μ) where
   abort = lift . abort
+
+instance MonadAbort e μ ⇒ MonadAbort e (MaybeT μ) where
+  abort = lift . abort
+
+instance MonadRecover e μ ⇒ MonadRecover e (MaybeT μ) where
+  recover m h = MaybeT $ runMaybeT m `recover` (runMaybeT . h)
 
 instance MonadAbort e μ ⇒ MonadAbort e (ListT μ) where
   abort = lift . abort
