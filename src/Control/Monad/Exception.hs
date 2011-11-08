@@ -76,13 +76,13 @@ import GHC.IO (IO(..))
 exception ∷ Exception e ⇒ e → α
 exception = E.throw
 
-evaluate ∷ MonadBase μ IO ⇒ α → μ α
+evaluate ∷ MonadBase IO μ ⇒ α → μ α
 evaluate = liftBase . E.evaluate
 
 throw ∷ (MonadAbort SomeException μ, Exception e) ⇒ e → μ α
 throw = abort . toException
 
-throwIO ∷ (MonadBase μ IO, Exception e) ⇒ e → μ α
+throwIO ∷ (MonadBase IO μ, Exception e) ⇒ e → μ α
 throwIO = liftBase . E.throwIO
 
 catch ∷ (MonadRecover SomeException μ, Exception e) ⇒ μ α → (e → μ α) → μ α
