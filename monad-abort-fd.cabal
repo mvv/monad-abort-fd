@@ -1,5 +1,5 @@
 Name: monad-abort-fd
-Version: 0.2
+Version: 0.3
 Category: Control
 Stability: experimental
 Synopsis: A better error monad transformer
