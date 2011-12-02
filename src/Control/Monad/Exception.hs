@@ -47,6 +47,7 @@ import Data.Default
 import Data.Traversable
 import Data.Functor.Identity
 import Control.Applicative
+import Control.Monad (join, liftM)
 import Control.Monad.Base
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Control
@@ -261,7 +262,9 @@ instance MonadMask MaskingState IO where
 
 liftSetMaskingState ∷ (MonadTransControl t, MonadMask m μ, Monad (t μ))
                     ⇒ m → t μ α → t μ α
-liftSetMaskingState ms m = control $ \run → setMaskingState ms (run m)
+liftSetMaskingState ms m =
+  join $ liftM (restoreT . return) $ liftWith $ \run →
+    setMaskingState ms (run m)
 {-# INLINE liftSetMaskingState #-}
 
 instance MonadMask m μ ⇒ MonadMask m (MaybeT μ) where
