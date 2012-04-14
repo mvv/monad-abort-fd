@@ -21,6 +21,7 @@ import Prelude hiding (catch)
 #endif
 import Data.Monoid
 import Control.Exception (SomeException, throwIO, catch)
+import Control.Applicative (Applicative, (<$>))
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Cont
@@ -39,11 +40,13 @@ import qualified Control.Monad.RWS.Strict as S
 import Control.Monad.Trans.Abort (AbortT(..))
 import qualified Control.Monad.Trans.Abort as A
 
-class Monad μ ⇒ MonadAbort e μ | μ → e where
+class (Applicative μ, Monad μ) ⇒ MonadAbort e μ | μ → e where
   abort ∷ e → μ α
 
 class MonadAbort e μ ⇒ MonadRecover e μ | μ → e where
   recover ∷ μ α → (e → μ α) → μ α
+  evaluate ∷ μ α → μ (Either e α)
+  evaluate m = recover (Right <$> m) (return . Left)
 
 onError ∷ MonadRecover e μ ⇒ μ α → (e → μ β) → μ α
 onError m h = recover m (\e → h e >> abort e)
@@ -54,10 +57,10 @@ onError_ m = onError m . const
 ignore ∷ MonadRecover e μ ⇒ μ α → μ ()
 ignore m = recover (m >> return ()) (const $ return ())
 
-instance Monad μ ⇒ MonadAbort e (AbortT e μ) where
+instance (Functor μ, Monad μ) ⇒ MonadAbort e (AbortT e μ) where
   abort = A.abort
 
-instance Monad μ ⇒ MonadRecover e (AbortT e μ) where
+instance (Functor μ, Monad μ) ⇒ MonadRecover e (AbortT e μ) where
   recover = A.recover
 
 instance MonadAbort SomeException IO where

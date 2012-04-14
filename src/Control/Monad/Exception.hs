@@ -2,6 +2,7 @@
 {-# LANGUAGE UnicodeSyntax #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PolyKinds #-}
@@ -16,7 +17,7 @@
 
 module Control.Monad.Exception
   ( exception
-  , evaluate
+  , forceWHNF
   , throw
   , throwIO
   , catch
@@ -86,8 +87,8 @@ import GHC.IO (IO(..))
 exception ∷ Exception e ⇒ e → α
 exception = E.throw
 
-evaluate ∷ MonadBase IO μ ⇒ α → μ α
-evaluate = liftBase . E.evaluate
+forceWHNF ∷ MonadBase IO μ ⇒ α → μ α
+forceWHNF = liftBase . E.evaluate
 
 throw ∷ (MonadAbort SomeException μ, Exception e) ⇒ e → μ α
 throw = abort . toException
@@ -117,12 +118,21 @@ catches m = recover m . hl
         hl (Handler h : hs) e = maybe (hl hs e) h $ fromException e
 
 try ∷ (MonadRecover SomeException μ, Exception e) ⇒ μ α → μ (Either e α)
-try m = catch (m >>= return . Right) (return . Left)
+try m = do
+  r ← evaluate m
+  case r of
+    Right a → return $ Right a
+    Left e | Just e' ← fromException e → return $ Left e'
+    Left e → throw e
 
 tryJust ∷ (MonadRecover SomeException μ, Exception e)
         ⇒ (e → Maybe β) → μ α → μ (Either β α)
-tryJust f m = catch (m >>= return . Right) $ \e →
-                maybe (throw e) (return . Left) $ f e
+tryJust f m = do
+  r ← evaluate m
+  case r of
+    Right a → return $ Right a
+    Left e | Just b ← fromException e >>= f → return $ Left b
+    Left e → throw e
 
 onException ∷ (MonadRecover SomeException μ, Exception e)
             ⇒ μ α → (e → μ β) → μ α
