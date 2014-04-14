@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE UnicodeSyntax #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -7,15 +8,17 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Control.Monad.Abort.Class (
-    MonadAbort(..),
-    MonadRecover(..),
-    onError,
-    onError_,
-    ignore
+module Control.Monad.Abort.Class
+  ( MonadAbort(..)
+  , MonadRecover(..)
+  , onError
+  , onError_
+  , ignore
   ) where
 
+#if !MIN_VERSION_base(4,6,0)
 import Prelude hiding (catch)
+#endif
 import Data.Monoid
 import Control.Exception (SomeException, throwIO, catch)
 import Control.Monad.Trans.Identity
@@ -155,4 +158,3 @@ instance (MonadAbort e μ, Monoid w) ⇒ MonadAbort e (S.RWST r w s μ) where
 instance (MonadRecover e μ, Monoid w) ⇒ MonadRecover e (S.RWST r w s μ) where
   recover m h = S.RWST $ \r s →
     S.runRWST m r s `recover` (\e → S.runRWST (h e) r s)
-

@@ -6,8 +6,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Control.Monad.Finish.Class (
-    MonadFinish(..)
+module Control.Monad.Finish.Class
+  ( MonadFinish(..)
   ) where
 
 import Data.Monoid
@@ -106,4 +106,3 @@ instance (MonadFinish f μ, Monoid w) ⇒ MonadFinish f (L.RWST r w s μ) where
 
 instance (MonadFinish f μ, Monoid w) ⇒ MonadFinish f (S.RWST r w s μ) where
   finish = lift . finish
-

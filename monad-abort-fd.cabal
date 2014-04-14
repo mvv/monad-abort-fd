@@ -25,7 +25,7 @@ Source-Repository head
 
 Library
   Build-Depends:
-    base               >= 4 && < 5,
+    base               >= 4.3 && < 5,
     transformers       >= 0.2,
     transformers-base  >= 0.4,
     transformers-abort >= 0.4,
@@ -40,4 +40,3 @@ Library
     Control.Monad.Finish.Class
     Control.Monad.Finish
     Control.Monad.Exception
-

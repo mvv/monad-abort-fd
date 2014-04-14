@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE UnicodeSyntax #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE StandaloneDeriving #-}
@@ -11,38 +12,40 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Control.Monad.Exception (
-    exception,
-    evaluate,
-    throw,
-    throwIO,
-    catch,
-    catchJust,
-    handle,
-    handleJust,
-    Handler(..),
-    catches,
-    try,
-    tryJust,
-    onException,
-    onExceptions,
-    MonadFinally(..),
-    onEscape,
-    tryAll,
-    MonadMask(..),
-    mask,
-    mask_,
-    uninterruptibleMask,
-    uninterruptibleMask_,
-    bracket,
-    bracket_,
-    bracketOnEscape,
-    bracketOnError,
-    module Control.Monad.Abort.Class,
-    module Control.Exception
+module Control.Monad.Exception
+  ( exception
+  , evaluate
+  , throw
+  , throwIO
+  , catch
+  , catchJust
+  , handle
+  , handleJust
+  , Handler(..)
+  , catches
+  , try
+  , tryJust
+  , onException
+  , onExceptions
+  , MonadFinally(..)
+  , onEscape
+  , tryAll
+  , MonadMask(..)
+  , mask
+  , mask_
+  , uninterruptibleMask
+  , uninterruptibleMask_
+  , bracket
+  , bracket_
+  , bracketOnEscape
+  , bracketOnError
+  , module Control.Monad.Abort.Class
+  , module Control.Exception
   ) where
 
+#if !MIN_VERSION_base(4,6,0)
 import Prelude hiding (catch)
+#endif
 import Data.Monoid
 import Data.Default.Class (Default(..))
 import Data.Traversable
@@ -68,7 +71,10 @@ import Control.Monad.Abort.Class
 import Control.Exception hiding (
   evaluate, throw, throwIO, catch, catchJust, handle, handleJust,
   Handler(..), catches, try, tryJust, finally, onException,
-  block, unblock, blocked, getMaskingState, mask, mask_, uninterruptibleMask,
+#if !MIN_VERSION_base(4,7,0)
+  block, unblock, blocked,
+#endif
+  getMaskingState, mask, mask_, uninterruptibleMask,
   uninterruptibleMask_, bracket, bracket_, bracketOnError)
 import qualified Control.Exception as E
 import GHC.Base (maskAsyncExceptions#, maskUninterruptible#,
@@ -362,4 +368,3 @@ bracketOnError acq release m = mask $ \restore → do
   a ← acq
   r ← restore (m a) `onError_` release a
   r <$ release a
-
