@@ -44,7 +44,7 @@ module Control.Monad.Exception (
 
 import Prelude hiding (catch)
 import Data.Monoid
-import Data.Default
+import Data.Default.Class (Default(..))
 import Data.Traversable
 import Data.Functor.Identity
 import Control.Applicative

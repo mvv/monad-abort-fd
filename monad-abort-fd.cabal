@@ -31,7 +31,7 @@ Library
     transformers-abort >= 0.4,
     mtl                >= 2.0,
     monad-control      >= 0.3,
-    data-default       >= 0.2
+    data-default-class >= 0.0.1
   Hs-Source-Dirs: src
   GHC-Options: -Wall
   Exposed-Modules:
