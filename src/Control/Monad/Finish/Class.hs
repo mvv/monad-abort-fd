@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE UnicodeSyntax #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -10,11 +11,14 @@ module Control.Monad.Finish.Class
   ( MonadFinish(..)
   ) where
 
-import Data.Monoid
+import Data.Monoid (Monoid)
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Cont
 import Control.Monad.Error
+#if MIN_VERSION_transformers(0,4,0)
+import Control.Monad.Except
+#endif
 import Control.Monad.List
 import Control.Monad.Reader
 import Control.Monad.State (MonadState(..))
@@ -79,6 +83,11 @@ instance MonadFinish f μ ⇒ MonadFinish f (MaybeT μ) where
 
 instance (MonadFinish f μ, Error e) ⇒ MonadFinish f (ErrorT e μ) where
   finish = lift . finish
+
+#if MIN_VERSION_transformers(0,4,0)
+instance MonadFinish f μ ⇒ MonadFinish f (ExceptT e μ) where
+  finish = lift . finish
+#endif
 
 instance MonadFinish f μ ⇒ MonadFinish f (AbortT e μ) where
   finish = lift . finish

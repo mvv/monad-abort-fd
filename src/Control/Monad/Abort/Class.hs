@@ -19,14 +19,17 @@ module Control.Monad.Abort.Class
 #if !MIN_VERSION_base(4,6,0)
 import Prelude hiding (catch)
 #endif
-import Data.Monoid
+import Data.Monoid (Monoid)
 import Control.Exception (SomeException, throwIO, catch)
 import Control.Applicative (Applicative, (<$>))
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Cont
-import Control.Monad.Error
 import Control.Monad.List
+import Control.Monad.Error
+#if MIN_VERSION_transformers(0,4,0)
+import Control.Monad.Except
+#endif
 import Control.Monad.Reader
 import Control.Monad.State (MonadState(..))
 import qualified Control.Monad.State.Lazy as L
@@ -161,3 +164,17 @@ instance (MonadAbort e μ, Monoid w) ⇒ MonadAbort e (S.RWST r w s μ) where
 instance (MonadRecover e μ, Monoid w) ⇒ MonadRecover e (S.RWST r w s μ) where
   recover m h = S.RWST $ \r s →
     S.runRWST m r s `recover` (\e → S.runRWST (h e) r s)
+
+instance (Monad μ, Error e) ⇒ MonadAbort e (ErrorT e μ) where
+  abort = throwError
+
+instance (Monad μ, Error e) ⇒ MonadRecover e (ErrorT e μ) where
+  recover = catchError
+
+#if MIN_VERSION_transformers(0,4,0)
+instance Monad μ ⇒ MonadAbort e (ExceptT e μ) where
+  abort = throwError
+
+instance Monad μ ⇒ MonadRecover e (ExceptT e μ) where
+  recover = catchError
+#endif

@@ -25,7 +25,7 @@ Source-Repository head
 
 Library
   if impl(ghc >= 7.7)
-    Build-Depends: base >= 4.7
+    Build-Depends: base >= 4.7 && < 5
   else
     Build-Depends: base >= 4.3 && < 5
                  , tagged >= 0.5

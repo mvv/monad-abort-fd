@@ -49,11 +49,11 @@ module Control.Monad.Exception
 #if !MIN_VERSION_base(4,6,0)
 import Prelude hiding (catch)
 #endif
-import Data.Monoid
+import Data.Monoid (Monoid)
 import Data.Proxy (Proxy(..))
 import Data.Traversable
 import Data.Functor.Identity
-import Control.Applicative
+import Control.Applicative (Applicative)
 import Control.Monad (join, liftM)
 import Control.Monad.Base
 import Control.Monad.Trans.Class
@@ -63,6 +63,9 @@ import Control.Monad.Trans.Finish
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.List
 import Control.Monad.Trans.Error
+#if MIN_VERSION_transformers(0,4,0)
+import Control.Monad.Trans.Except
+#endif
 import Control.Monad.Trans.Reader
 import qualified Control.Monad.Trans.State.Lazy as L
 import qualified Control.Monad.Trans.State.Strict as S
@@ -200,6 +203,16 @@ instance (MonadFinally μ, Error e) ⇒ MonadFinally (ErrorT e μ) where
         _              → Nothing
     return $ (,) <$> mr <*> fr
 
+#if MIN_VERSION_transformers(0,4,0)
+instance MonadFinally μ ⇒ MonadFinally (ExceptT e μ) where
+  finally' m f = ExceptT $ do
+    ~(mr, fr) ← finally' (runExceptT m) $ \mbr →
+      runExceptT $ f $ case mbr of
+        Just (Right a) → Just a
+        _              → Nothing
+    return $ (,) <$> mr <*> fr
+#endif
+
 instance MonadFinally μ ⇒ MonadFinally (ReaderT r μ) where
   finally' m f = ReaderT $ \r →
     finally' (runReaderT m r) ((`runReaderT` r) . f)
@@ -313,6 +326,13 @@ instance (MonadMask m μ, Error e) ⇒ MonadMask m (ErrorT e μ) where
   defMaskingState = proxyDefMaskingState
   getMaskingState = lift getMaskingState
   setMaskingState = liftSetMaskingState
+
+#if MIN_VERSION_transformers(0,4,0)
+instance MonadMask m μ ⇒ MonadMask m (ExceptT e μ) where
+  defMaskingState = proxyDefMaskingState
+  getMaskingState = lift getMaskingState
+  setMaskingState = liftSetMaskingState
+#endif
 
 instance MonadMask m μ ⇒ MonadMask m (ReaderT r μ) where
   defMaskingState = proxyDefMaskingState
