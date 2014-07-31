@@ -3,6 +3,8 @@
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ImpredicativeTypes #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -47,7 +49,7 @@ module Control.Monad.Exception
 import Prelude hiding (catch)
 #endif
 import Data.Monoid
-import Data.Default.Class (Default(..))
+import Data.Proxy (Proxy(..))
 import Data.Traversable
 import Data.Functor.Identity
 import Control.Applicative
@@ -249,23 +251,26 @@ deriving instance Ord MaskingState
 deriving instance Enum MaskingState
 deriving instance Bounded MaskingState
 
-instance Default MaskingState where
-  def = MaskedInterruptible
-
-class (Applicative μ, Monad μ, Ord m, Bounded m, Default m)
+class (Applicative μ, Monad μ, Ord m, Bounded m)
       ⇒ MonadMask m μ | μ → m where
+  defMaskingState ∷ Proxy μ → m
   getMaskingState ∷ μ m
   setMaskingState ∷ m → μ α → μ α
 
 instance MonadMask () Identity where
+  defMaskingState = const ()
   getMaskingState = return ()
   setMaskingState = const id
 
 instance MonadMask MaskingState IO where
+  defMaskingState = const MaskedInterruptible
   getMaskingState = E.getMaskingState
   setMaskingState Unmasked (IO io) = IO $ unmaskAsyncExceptions# io
   setMaskingState MaskedInterruptible (IO io) = IO $ maskAsyncExceptions# io
   setMaskingState MaskedUninterruptible (IO io) = IO $ maskUninterruptible# io
+
+proxyDefMaskingState ∷ ∀ m μ t . MonadMask m μ ⇒ Proxy (t μ) → m
+proxyDefMaskingState = const (defMaskingState (Proxy ∷ Proxy μ))
 
 liftSetMaskingState ∷ (MonadTransControl t, MonadMask m μ, Monad (t μ))
                     ⇒ m → t μ α → t μ α
@@ -275,50 +280,62 @@ liftSetMaskingState ms m =
 {-# INLINE liftSetMaskingState #-}
 
 instance MonadMask m μ ⇒ MonadMask m (MaybeT μ) where
+  defMaskingState = proxyDefMaskingState
   getMaskingState = lift getMaskingState
   setMaskingState = liftSetMaskingState
 
 instance MonadMask m μ ⇒ MonadMask m (ListT μ) where
+  defMaskingState = proxyDefMaskingState
   getMaskingState = lift getMaskingState
   setMaskingState = liftSetMaskingState
 
 instance MonadMask m μ ⇒ MonadMask m (AbortT e μ) where
+  defMaskingState = proxyDefMaskingState
   getMaskingState = lift getMaskingState
   setMaskingState = liftSetMaskingState
 
 instance MonadMask m μ ⇒ MonadMask m (FinishT β μ) where
+  defMaskingState = proxyDefMaskingState
   getMaskingState = lift getMaskingState
   setMaskingState = liftSetMaskingState
 
 instance (MonadMask m μ, Error e) ⇒ MonadMask m (ErrorT e μ) where
+  defMaskingState = proxyDefMaskingState
   getMaskingState = lift getMaskingState
   setMaskingState = liftSetMaskingState
 
 instance MonadMask m μ ⇒ MonadMask m (ReaderT r μ) where
+  defMaskingState = proxyDefMaskingState
   getMaskingState = lift getMaskingState
   setMaskingState = liftSetMaskingState
 
 instance MonadMask m μ ⇒ MonadMask m (L.StateT s μ) where
+  defMaskingState = proxyDefMaskingState
   getMaskingState = lift getMaskingState
   setMaskingState = liftSetMaskingState
 
 instance MonadMask m μ ⇒ MonadMask m (S.StateT s μ) where
+  defMaskingState = proxyDefMaskingState
   getMaskingState = lift getMaskingState
   setMaskingState = liftSetMaskingState
 
 instance (MonadMask m μ, Monoid w) ⇒ MonadMask m (L.WriterT w μ) where
+  defMaskingState = proxyDefMaskingState
   getMaskingState = lift getMaskingState
   setMaskingState = liftSetMaskingState
 
 instance (MonadMask m μ, Monoid w) ⇒ MonadMask m (S.WriterT w μ) where
+  defMaskingState = proxyDefMaskingState
   getMaskingState = lift getMaskingState
   setMaskingState = liftSetMaskingState
 
 instance (MonadMask m μ, Monoid w) ⇒ MonadMask m (L.RWST r w s μ) where
+  defMaskingState = proxyDefMaskingState
   getMaskingState = lift getMaskingState
   setMaskingState = liftSetMaskingState
 
 instance (MonadMask m μ, Monoid w) ⇒ MonadMask m (S.RWST r w s μ) where
+  defMaskingState = proxyDefMaskingState
   getMaskingState = lift getMaskingState
   setMaskingState = liftSetMaskingState
 
@@ -333,11 +350,12 @@ withMaskingState ms' m = do
 withMaskingState_ ∷ MonadMask m μ ⇒ m → μ α → μ α
 withMaskingState_ m = withMaskingState m . const
 
-mask ∷ MonadMask m μ ⇒ ((∀ η β . MonadMask m η ⇒ η β → η β) → μ α) → μ α
-mask = withMaskingState def
+mask ∷ ∀ m μ α . MonadMask m μ
+     ⇒ ((∀ η β . MonadMask m η ⇒ η β → η β) → μ α) → μ α
+mask = withMaskingState $ defMaskingState (Proxy ∷ Proxy μ)
  
-mask_ ∷ MonadMask m μ ⇒ μ α → μ α
-mask_ = withMaskingState_ def
+mask_ ∷ ∀ m μ α . MonadMask m μ ⇒ μ α → μ α
+mask_ = withMaskingState_ $ defMaskingState (Proxy ∷ Proxy μ)
 
 uninterruptibleMask ∷ MonadMask MaskingState μ
                     ⇒ ((∀ η β . MonadMask MaskingState η ⇒ η β → η β) → μ α)

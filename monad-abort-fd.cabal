@@ -24,14 +24,17 @@ Source-Repository head
   Location: https://github.com/mvv/monad-abort-fd.git
 
 Library
+  if impl(ghc >= 7.7)
+    Build-Depends: base >= 4.7
+  else
+    Build-Depends: base >= 4.3 && < 5
+                 , tagged >= 0.5
   Build-Depends:
-    base               >= 4.3 && < 5,
     transformers       >= 0.2,
     transformers-base  >= 0.4,
     transformers-abort >= 0.4,
     mtl                >= 2.0,
-    monad-control      >= 0.3,
-    data-default-class >= 0.0.1
+    monad-control      >= 0.3
   Hs-Source-Dirs: src
   GHC-Options: -Wall
   Exposed-Modules:
