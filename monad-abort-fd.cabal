@@ -12,7 +12,7 @@ Bug-Reports: https://github.com/mvv/monad-abort-fd/issues
 
 Author: Mikhail Vorozhtsov <mikhail.vorozhtsov@gmail.com>
 Maintainer: Mikhail Vorozhtsov <mikhail.vorozhtsov@gmail.com>
-Copyright: 2011 Mikhail Vorozhtsov <mikhail.vorozhtsov@gmail.com>
+Copyright: 2011-2016 Mikhail Vorozhtsov <mikhail.vorozhtsov@gmail.com>
 License: BSD3
 License-File: LICENSE
 
