@@ -191,14 +191,14 @@ instance (MonadRecover e μ, Monoid w) ⇒ MonadRecover e (S.RWST r w s μ) wher
   recover m h = S.RWST $ \r s →
     S.runRWST m r s `recover` (\e → S.runRWST (h e) r s)
 
-instance (Monad μ, Error e) ⇒ MonadAbort e (ErrorT e μ) where
+instance (Functor μ, Monad μ, Error e) ⇒ MonadAbort e (ErrorT e μ) where
   abort = throwError
 
-instance (Monad μ, Error e) ⇒ MonadRecover e (ErrorT e μ) where
+instance (Functor μ, Monad μ, Error e) ⇒ MonadRecover e (ErrorT e μ) where
   recover = catchError
 
-instance Monad μ ⇒ MonadAbort e (ExceptT e μ) where
+instance (Functor μ, Monad μ) ⇒ MonadAbort e (ExceptT e μ) where
   abort = throwError
 
-instance Monad μ ⇒ MonadRecover e (ExceptT e μ) where
+instance (Functor μ, Monad μ) ⇒ MonadRecover e (ExceptT e μ) where
   recover = catchError
