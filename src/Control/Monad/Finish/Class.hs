@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE UnicodeSyntax #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -7,6 +6,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+-- | Monad type class for short-cicuiting computation.
 module Control.Monad.Finish.Class
   ( MonadFinish(..)
   ) where
@@ -16,9 +16,7 @@ import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Cont
 import Control.Monad.Error
-#if MIN_VERSION_transformers(0,4,0)
 import Control.Monad.Except
-#endif
 import Control.Monad.List
 import Control.Monad.Reader
 import Control.Monad.State (MonadState(..))
@@ -34,7 +32,13 @@ import Control.Monad.Abort
 import Control.Monad.Trans.Finish (FinishT(..))
 import qualified Control.Monad.Trans.Finish as F
 
+-- | Class of monads that support short-circuiting.
 class Monad μ ⇒ MonadFinish f μ | μ → f where
+  -- | Short-circuit the computation with the provided value.
+  --
+  -- @
+  --     finish f >>= rest = finish f
+  -- @
   finish ∷ f → μ α
 
 instance Monad μ ⇒ MonadFinish f (FinishT f μ) where
@@ -84,10 +88,8 @@ instance MonadFinish f μ ⇒ MonadFinish f (MaybeT μ) where
 instance (MonadFinish f μ, Error e) ⇒ MonadFinish f (ErrorT e μ) where
   finish = lift . finish
 
-#if MIN_VERSION_transformers(0,4,0)
 instance MonadFinish f μ ⇒ MonadFinish f (ExceptT e μ) where
   finish = lift . finish
-#endif
 
 instance MonadFinish f μ ⇒ MonadFinish f (AbortT e μ) where
   finish = lift . finish

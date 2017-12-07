@@ -1,6 +1,7 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
+-- | Short-circuiting monad transformer and the corresponding generalizing
+-- monad type class.
 module Control.Monad.Finish
   ( MonadFinish(..)
 
@@ -18,9 +19,7 @@ module Control.Monad.Finish
 
 import Control.Monad
 import Control.Monad.Fix
-#if !MIN_VERSION_base(4,6,0)
 import Control.Monad.Instances ()
-#endif
 import Control.Monad.Trans
 import Control.Monad.Trans.Finish hiding (finish)
 import Control.Monad.Finish.Class

@@ -1,6 +1,7 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
+-- | Error monad transformer and monad type classes for raising
+-- errors and recovering from them.
 module Control.Monad.Abort
   ( MonadAbort(..)
   , MonadRecover(..)
@@ -19,9 +20,7 @@ module Control.Monad.Abort
 
 import Control.Monad
 import Control.Monad.Fix
-#if !MIN_VERSION_base(4,6,0)
 import Control.Monad.Instances ()
-#endif
 import Control.Monad.Trans
 import Control.Monad.Trans.Abort hiding (abort, recover)
 import Control.Monad.Abort.Class

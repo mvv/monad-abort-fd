@@ -8,12 +8,13 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+-- | Monad type classes for raising errors and recovering from them.
 module Control.Monad.Abort.Class
   ( MonadAbort(..)
   , MonadRecover(..)
   , onError
   , onError_
-  , ignore
+  , ignoreErrors
   ) where
 
 #if !MIN_VERSION_base(4,6,0)
@@ -27,9 +28,7 @@ import Control.Monad.Trans.Maybe
 import Control.Monad.Cont
 import Control.Monad.List
 import Control.Monad.Error
-#if MIN_VERSION_transformers(0,4,0)
 import Control.Monad.Except
-#endif
 import Control.Monad.Reader
 import Control.Monad.State (MonadState(..))
 import qualified Control.Monad.State.Lazy as L
@@ -43,22 +42,49 @@ import qualified Control.Monad.RWS.Strict as S
 import Control.Monad.Trans.Abort (AbortT(..))
 import qualified Control.Monad.Trans.Abort as A
 
+-- | Class of monads that support raising of errors.
 class (Applicative μ, Monad μ) ⇒ MonadAbort e μ | μ → e where
+  -- | Raise an error.
+  --
+  -- @
+  --     'abort' e >>= rest = 'abort' e
+  -- @
   abort ∷ e → μ α
 
+-- | Class of monads that support recovery from errors.
 class MonadAbort e μ ⇒ MonadRecover e μ | μ → e where
+#if __GLASGOW_HASKELL__ >= 708
+  {-# MINIMAL recover | evaluate #-}
+#endif
+  -- | @'recover' m h@ recovers from errors raised in computation @m@ using
+  -- the provided error handler @h@. The default implementation is
+  --
+  -- @
+  --   'evaluate' m '>>=' 'either' h 'return'
+  -- @
   recover ∷ μ α → (e → μ α) → μ α
+  recover m h = evaluate m >>= either h return
+  -- | @'evaluate' m@ runs computation @m@, returning @'Left' e@ if it
+  -- raised an error @e@. The default implementation is
+  --
+  -- @
+  --    'recover' ('Right' '<$>' m) ('return' . 'Left')
+  -- @
   evaluate ∷ μ α → μ (Either e α)
   evaluate m = recover (Right <$> m) (return . Left)
 
+-- | Run an action on error, without recovering from it.
 onError ∷ MonadRecover e μ ⇒ μ α → (e → μ β) → μ α
 onError m h = recover m (\e → h e >> abort e)
 
+-- | Run an action on error (ignoring the error value), without recovering
+-- from it.
 onError_ ∷ MonadRecover e μ ⇒ μ α → μ β → μ α
 onError_ m = onError m . const
 
-ignore ∷ MonadRecover e μ ⇒ μ α → μ ()
-ignore m = recover (m >> return ()) (const $ return ())
+-- | Silently recover from all errors.
+ignoreErrors ∷ MonadRecover e μ ⇒ μ α → μ ()
+ignoreErrors m = recover (m >> return ()) (const $ return ())
 
 instance (Functor μ, Monad μ) ⇒ MonadAbort e (AbortT e μ) where
   abort = A.abort
@@ -171,10 +197,8 @@ instance (Monad μ, Error e) ⇒ MonadAbort e (ErrorT e μ) where
 instance (Monad μ, Error e) ⇒ MonadRecover e (ErrorT e μ) where
   recover = catchError
 
-#if MIN_VERSION_transformers(0,4,0)
 instance Monad μ ⇒ MonadAbort e (ExceptT e μ) where
   abort = throwError
 
 instance Monad μ ⇒ MonadRecover e (ExceptT e μ) where
   recover = catchError
-#endif

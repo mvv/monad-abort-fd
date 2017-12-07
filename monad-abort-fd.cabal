@@ -16,6 +16,8 @@ Copyright: 2011-2016 Mikhail Vorozhtsov <mikhail.vorozhtsov@gmail.com>
 License: BSD3
 License-File: LICENSE
 
+Tested-With: GHC==7.6.3, GHC==7.8.4, GHC==7.10.3, GHC==8.0.2, GHC==8.2.2
+
 Cabal-Version: >= 1.6.0
 Build-Type: Simple
 
@@ -24,17 +26,12 @@ Source-Repository head
   Location: https://github.com/mvv/monad-abort-fd.git
 
 Library
-  if impl(ghc >= 7.7)
-    Build-Depends: base >= 4.7 && < 5
-  else
-    Build-Depends: base >= 4.3 && < 5
-                 , tagged >= 0.5
-  Build-Depends:
-    transformers       >= 0.2,
-    transformers-base  >= 0.4,
-    transformers-abort >= 0.4,
-    mtl                >= 2.0,
-    monad-control      >= 0.3
+  Build-Depends: base >= 4.3 && < 5
+  Build-Depends: transformers        >= 0.2
+               , transformers-compat >= 0.5
+               , transformers-base   >= 0.4
+               , transformers-abort  >= 0.4
+               , mtl                 >= 2.0
   Hs-Source-Dirs: src
   GHC-Options: -Wall
   Exposed-Modules:
@@ -42,4 +39,3 @@ Library
     Control.Monad.Abort
     Control.Monad.Finish.Class
     Control.Monad.Finish
-    Control.Monad.Exception
