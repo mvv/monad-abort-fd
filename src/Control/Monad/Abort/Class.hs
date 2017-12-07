@@ -28,7 +28,7 @@ import Control.Monad.Trans.Maybe
 import Control.Monad.Cont
 import Control.Monad.List
 import Control.Monad.Error
-import Control.Monad.Except
+import Control.Monad.Trans.Except
 import Control.Monad.Reader
 import Control.Monad.State (MonadState(..))
 import qualified Control.Monad.State.Lazy as L
