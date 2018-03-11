@@ -36,6 +36,7 @@ Library
                , transformers-base   >= 0.4
                , transformers-abort  >= 0.4
                , mtl                 >= 2.0
+               , stm                 >= 2.4
   Hs-Source-Dirs: src
   GHC-Options: -Wall
   Exposed-Modules:

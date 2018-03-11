@@ -41,6 +41,7 @@ import qualified Control.Monad.RWS.Lazy as L
 import qualified Control.Monad.RWS.Strict as S
 import Control.Monad.Trans.Abort (AbortT(..))
 import qualified Control.Monad.Trans.Abort as A
+import Control.Monad.STM (STM, throwSTM, catchSTM)
 
 -- | Class of monads that support raising of errors.
 class (Applicative μ, Monad μ) ⇒ MonadAbort e μ | μ → e where
@@ -97,6 +98,12 @@ instance MonadAbort SomeException IO where
 
 instance MonadRecover SomeException IO where
   recover = catch
+
+instance MonadAbort SomeException STM where
+  abort = throwSTM
+
+instance MonadRecover SomeException STM where
+  recover = catchSTM
 
 instance Monad μ ⇒ MonadError e (AbortT e μ) where
   throwError = A.abort
