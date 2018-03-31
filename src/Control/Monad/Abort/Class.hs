@@ -39,6 +39,8 @@ import qualified Control.Monad.Writer.Strict as S
 import Control.Monad.RWS (MonadRWS)
 import qualified Control.Monad.RWS.Lazy as L
 import qualified Control.Monad.RWS.Strict as S
+import Control.Monad.Trans.Accum (AccumT(..), runAccumT)
+import Control.Monad.Trans.Select (SelectT(..))
 import Control.Monad.Trans.Abort (AbortT(..))
 import qualified Control.Monad.Trans.Abort as A
 import Control.Monad.STM (STM, throwSTM, catchSTM)
@@ -209,3 +211,12 @@ instance (Functor μ, Monad μ) ⇒ MonadAbort e (ExceptT e μ) where
 
 instance (Functor μ, Monad μ) ⇒ MonadRecover e (ExceptT e μ) where
   recover = catchError
+
+instance (Monoid w, MonadAbort e μ) ⇒ MonadAbort e (AccumT w μ) where
+  abort = lift . abort
+
+instance (Monoid w, MonadRecover e μ) ⇒ MonadRecover e (AccumT w μ) where
+  recover m h = AccumT $ \w → runAccumT m w `recover` ((`runAccumT` w) . h)
+
+instance MonadAbort e μ ⇒ MonadAbort e (SelectT r μ) where
+  abort = lift . abort
