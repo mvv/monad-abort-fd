@@ -51,12 +51,6 @@ instance MonadError e μ ⇒ MonadError e (FinishT f μ) where
   throwError = lift . throwError
   catchError m h = FinishT $ catchError (runFinishT m) (runFinishT . h)
 
-instance MonadAbort e μ ⇒ MonadAbort e (FinishT f μ) where
-  abort = lift . abort
-
-instance MonadRecover e μ ⇒ MonadRecover e (FinishT f μ) where
-  recover m h = FinishT $ recover (runFinishT m) (runFinishT . h)
-
 instance MonadReader r μ ⇒ MonadReader r (FinishT f μ) where
   ask = lift ask
   local f = FinishT . local f . runFinishT

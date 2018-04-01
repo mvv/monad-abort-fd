@@ -43,6 +43,7 @@ import Control.Monad.Trans.Accum (AccumT(..), runAccumT)
 import Control.Monad.Trans.Select (SelectT(..))
 import Control.Monad.Trans.Abort (AbortT(..))
 import qualified Control.Monad.Trans.Abort as A
+import Control.Monad.Trans.Finish (FinishT(..))
 import Control.Monad.STM (STM, throwSTM, catchSTM)
 
 -- | Class of monads that support raising of errors.
@@ -220,3 +221,9 @@ instance (Monoid w, MonadRecover e μ) ⇒ MonadRecover e (AccumT w μ) where
 
 instance MonadAbort e μ ⇒ MonadAbort e (SelectT r μ) where
   abort = lift . abort
+
+instance MonadAbort e μ ⇒ MonadAbort e (FinishT f μ) where
+  abort = lift . abort
+
+instance MonadRecover e μ ⇒ MonadRecover e (FinishT f μ) where
+  recover m h = FinishT $ recover (runFinishT m) (runFinishT . h)
