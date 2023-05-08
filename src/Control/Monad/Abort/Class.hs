@@ -26,8 +26,12 @@ import Control.Applicative (Applicative, (<$>))
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Cont
+#if !MIN_VERSION_mtl(2,3,0)
 import Control.Monad.List
 import Control.Monad.Error
+#else
+import Control.Monad.Error.Class
+#endif
 import Control.Monad.Trans.Except
 import Control.Monad.Reader
 import Control.Monad.State (MonadState(..))
@@ -149,11 +153,13 @@ instance MonadAbort e μ ⇒ MonadAbort e (MaybeT μ) where
 instance MonadRecover e μ ⇒ MonadRecover e (MaybeT μ) where
   recover m h = MaybeT $ runMaybeT m `recover` (runMaybeT . h)
 
+#if !MIN_VERSION_mtl(2,3,0)
 instance MonadAbort e μ ⇒ MonadAbort e (ListT μ) where
   abort = lift . abort
 
 instance MonadRecover e μ ⇒ MonadRecover e (ListT μ) where
   recover m h = ListT $ runListT m `recover` (runListT . h)
+#endif
 
 instance MonadAbort e μ ⇒ MonadAbort e (ReaderT r μ) where
   abort = lift . abort
@@ -201,11 +207,13 @@ instance (MonadRecover e μ, Monoid w) ⇒ MonadRecover e (S.RWST r w s μ) wher
   recover m h = S.RWST $ \r s →
     S.runRWST m r s `recover` (\e → S.runRWST (h e) r s)
 
+#if !MIN_VERSION_mtl(2,3,0)
 instance (Functor μ, Monad μ, Error e) ⇒ MonadAbort e (ErrorT e μ) where
   abort = throwError
 
 instance (Functor μ, Monad μ, Error e) ⇒ MonadRecover e (ErrorT e μ) where
   recover = catchError
+#endif
 
 instance (Functor μ, Monad μ) ⇒ MonadAbort e (ExceptT e μ) where
   abort = throwError

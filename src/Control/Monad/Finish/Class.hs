@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE UnicodeSyntax #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -15,9 +16,13 @@ import Data.Monoid (Monoid)
 import Control.Monad.Trans.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Cont
-import Control.Monad.Error
 import Control.Monad.Trans.Except
+#if !MIN_VERSION_mtl(2,3,0)
 import Control.Monad.List
+import Control.Monad.Error
+#else
+import Control.Monad.Error.Class
+#endif
 import Control.Monad.Reader
 import Control.Monad.State (MonadState(..))
 import qualified Control.Monad.State.Lazy as L
@@ -79,8 +84,10 @@ instance MonadFinish f μ ⇒ MonadFinish f (ContT r μ) where
 instance MonadFinish f μ ⇒ MonadFinish f (MaybeT μ) where
   finish = lift . finish
 
+#if !MIN_VERSION_mtl(2,3,0)
 instance (MonadFinish f μ, Error e) ⇒ MonadFinish f (ErrorT e μ) where
   finish = lift . finish
+#endif
 
 instance MonadFinish f μ ⇒ MonadFinish f (ExceptT e μ) where
   finish = lift . finish
@@ -88,8 +95,10 @@ instance MonadFinish f μ ⇒ MonadFinish f (ExceptT e μ) where
 instance MonadFinish f μ ⇒ MonadFinish f (AbortT e μ) where
   finish = lift . finish
 
+#if !MIN_VERSION_mtl(2,3,0)
 instance MonadFinish f μ ⇒ MonadFinish f (ListT μ) where
   finish = lift . finish
+#endif
 
 instance MonadFinish f μ ⇒ MonadFinish f (ReaderT r μ) where
   finish = lift . finish
